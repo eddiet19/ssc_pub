@@ -1,0 +1,277 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.3.539.46024",
+      "templateHash": "11804975784351297367"
+    }
+  },
+  "parameters": {
+    "region": {
+      "type": "string",
+      "allowedValues": [
+        "CanadaCentral",
+        "CanadaEast"
+      ]
+    },
+    "subscriptionId": {
+      "type": "string",
+      "defaultValue": "7198d08c-c362-4703-9854-53b6f0d8fc44",
+      "metadata": {
+        "description": "SubscriptionID"
+      }
+    },
+    "coreResourceGroupName": {
+      "type": "string",
+      "defaultValue": "GcDc-DCSB-PS-Network-rg",
+      "metadata": {
+        "description": "Core Resource Group Name"
+      }
+    },
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "GcDcCNR-PS-vnet",
+      "metadata": {
+        "description": "VNet Name"
+      }
+    },
+    "subNetName": {
+      "type": "string",
+      "defaultValue": "GcDcCNR-PS-subnet0-snet",
+      "metadata": {
+        "description": "Subnet Name"
+      }
+    },
+    "vmName": {
+      "type": "string",
+      "defaultValue": "MytestVM",
+      "maxLength": 15,
+      "metadata": {
+        "description": "Name of the virtual machine."
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "secureString",
+      "minLength": 12,
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "OSVersion": {
+      "type": "string",
+      "defaultValue": "2019-Datacenter",
+      "allowedValues": [
+        "2012-R2-Datacenter",
+        "2016-Datacenter",
+        "2019-Datacenter"
+      ],
+      "metadata": {
+        "description": "Os image"
+      }
+    },
+    "virtualMachineSize": {
+      "type": "string",
+      "defaultValue": "Standard_B2ms",
+      "allowedValues": [
+        "Standard_B2ms",
+        "Standard_B4ms",
+        "Standard_B8ms",
+        "Standard_B12ms",
+        "Standard_B16ms",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D5_v2",
+        "Standard_DS3_v2",
+        "Standard_DS4_v2",
+        "Standard_DS5_v2"
+      ],
+      "metadata": {
+        "description": "VM Size"
+      }
+    },
+    "OSDiskAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "StandardSSD_LRS",
+        "Premium_LRS"
+      ],
+      "metadata": {
+        "description": "OS Disk Account Type"
+      }
+    },
+    "DataDiskAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "StandardSSD_LRS",
+        "Premium_LRS"
+      ],
+      "metadata": {
+        "description": "Data Disk Account Type"
+      }
+    },
+    "DataDisk1SizeGB": {
+      "type": "int",
+      "defaultValue": 256,
+      "metadata": {
+        "description": "Data Disk 1 Size in GB"
+      }
+    },
+    "DataDisk1CacheOption": {
+      "type": "string",
+      "defaultValue": "ReadOnly",
+      "allowedValues": [
+        "ReadOnly",
+        "ReadWrite",
+        "None"
+      ],
+      "metadata": {
+        "description": "Data Disk 1 Cache Option. Data Drive"
+      }
+    },
+    "DataDisk2SizeGB": {
+      "type": "int",
+      "defaultValue": 256,
+      "metadata": {
+        "description": "Data Disk 2 Size in GB"
+      }
+    },
+    "DataDisk2CacheOption": {
+      "type": "string",
+      "defaultValue": "None",
+      "allowedValues": [
+        "ReadOnly",
+        "ReadWrite",
+        "None"
+      ],
+      "metadata": {
+        "description": "Data Disk 2 Cache Option. Data Drive"
+      }
+    },
+    "DataDisk3SizeGB": {
+      "type": "int",
+      "defaultValue": 50,
+      "metadata": {
+        "description": "Data Disk 3 Size in GB"
+      }
+    },
+    "DataDisk3CacheOption": {
+      "type": "string",
+      "defaultValue": "None",
+      "allowedValues": [
+        "ReadOnly",
+        "ReadWrite",
+        "None"
+      ],
+      "metadata": {
+        "description": "Data Disk 3 Cache Option. Data Drive"
+      }
+    }
+  },
+  "functions": [],
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2021-02-01",
+      "name": "[format('{0}-nic1', parameters('vmName'))]",
+      "location": "[parameters('region')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "[format('{0}-ip', parameters('vmName'))]",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/virtualNetworks/{2}/subnets/{3}', parameters('subscriptionId'), parameters('coreResourceGroupName'), parameters('vnetName'), parameters('subNetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2021-04-01",
+      "name": "[parameters('vmName')]",
+      "location": "[parameters('region')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "[parameters('OSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[format('{0}_OsDisk_1', parameters('vmName'))]",
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[parameters('OSDiskAccountType')]"
+            }
+          },
+          "dataDisks": [
+            {
+              "name": "[format('{0}_DataDisk_1', parameters('vmName'))]",
+              "diskSizeGB": "[parameters('DataDisk1SizeGB')]",
+              "lun": 0,
+              "caching": "[parameters('DataDisk1CacheOption')]",
+              "createOption": "Empty",
+              "managedDisk": {
+                "storageAccountType": "[parameters('DataDiskAccountType')]"
+              }
+            },
+            {
+              "name": "[format('{0}_DataDisk_2', parameters('vmName'))]",
+              "diskSizeGB": "[parameters('DataDisk2SizeGB')]",
+              "lun": 1,
+              "caching": "[parameters('DataDisk2CacheOption')]",
+              "createOption": "Empty",
+              "managedDisk": {
+                "storageAccountType": "[parameters('DataDiskAccountType')]"
+              }
+            },
+            {
+              "name": "[format('{0}_DataDisk_3', parameters('vmName'))]",
+              "diskSizeGB": "[parameters('DataDisk3SizeGB')]",
+              "lun": 2,
+              "caching": "[parameters('DataDisk3CacheOption')]",
+              "createOption": "Empty",
+              "managedDisk": {
+                "storageAccountType": "[parameters('DataDiskAccountType')]"
+              }
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic1', parameters('vmName')))]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic1', parameters('vmName')))]"
+      ]
+    }
+  ]
+}
